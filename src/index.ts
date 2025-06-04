@@ -12,7 +12,7 @@ import { TodoistApi } from "@doist/todoist-api-typescript";
 // Define tools
 const CREATE_TASK_TOOL: Tool = {
   name: "todoist_create_task",
-  description: "Create a new task in Todoist with optional description, due date, and priority",
+  description: "Create a new task in Todoist with optional description, due date, priority, project assignment, labels, and more",
   inputSchema: {
     type: "object",
     properties: {
@@ -32,6 +32,29 @@ const CREATE_TASK_TOOL: Tool = {
         type: "number",
         description: "Task priority from 1 (normal) to 4 (urgent) (optional)",
         enum: [1, 2, 3, 4]
+      },
+      project_id: {
+        type: "string",
+        description: "ID of the project to assign the task to (optional)"
+      },
+      labels: {
+        type: "array",
+        items: {
+          type: "string"
+        },
+        description: "Array of label names to assign to the task (optional)"
+      },
+      section_id: {
+        type: "string", 
+        description: "ID of the section within the project to place the task (optional)"
+      },
+      parent_id: {
+        type: "string",
+        description: "ID of the parent task to create this as a subtask (optional)"
+      },
+      assignee_id: {
+        type: "number",
+        description: "ID of the user to assign this task to (optional)"
       }
     },
     required: ["content"]
@@ -172,6 +195,11 @@ function isCreateTaskArgs(args: unknown): args is {
   description?: string;
   due_string?: string;
   priority?: number;
+  project_id?: string;
+  labels?: string[];
+  section_id?: string;
+  parent_id?: string;
+  assignee_id?: number;
 } {
   return (
     typeof args === "object" &&
@@ -256,16 +284,39 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (!isCreateTaskArgs(args)) {
         throw new Error("Invalid arguments for todoist_create_task");
       }
-      const task = await todoistClient.addTask({
+      
+      // Build task data with all available properties
+      const taskData: any = {
         content: args.content,
-        description: args.description,
-        dueString: args.due_string,
-        priority: args.priority
-      });
+      };
+      
+      // Add optional properties if provided
+      if (args.description) taskData.description = args.description;
+      if (args.due_string) taskData.dueString = args.due_string;
+      if (args.priority) taskData.priority = args.priority;
+      if (args.project_id) taskData.projectId = args.project_id;
+      if (args.labels && args.labels.length > 0) taskData.labels = args.labels;
+      if (args.section_id) taskData.sectionId = args.section_id;
+      if (args.parent_id) taskData.parentId = args.parent_id;
+      if (args.assignee_id) taskData.assigneeId = args.assignee_id;
+      
+      const task = await todoistClient.addTask(taskData);
+      
+      // Build enhanced response showing all set properties
+      let responseText = `Task created:\nTitle: ${task.content}`;
+      if (task.description) responseText += `\nDescription: ${task.description}`;
+      if (task.due) responseText += `\nDue: ${task.due.string}`;
+      if (task.priority) responseText += `\nPriority: ${task.priority}`;
+      if (task.projectId) responseText += `\nProject ID: ${task.projectId}`;
+      if (task.labels && task.labels.length > 0) responseText += `\nLabels: ${task.labels.join(', ')}`;
+      if (task.sectionId) responseText += `\nSection ID: ${task.sectionId}`;
+      if (task.parentId) responseText += `\nParent Task ID: ${task.parentId}`;
+      if (task.assigneeId) responseText += `\nAssigned to: ${task.assigneeId}`;
+      
       return {
         content: [{ 
           type: "text", 
-          text: `Task created:\nTitle: ${task.content}${task.description ? `\nDescription: ${task.description}` : ''}${task.due ? `\nDue: ${task.due.string}` : ''}${task.priority ? `\nPriority: ${task.priority}` : ''}` 
+          text: responseText
         }],
         isError: false,
       };
