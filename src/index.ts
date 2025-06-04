@@ -89,6 +89,21 @@ const GET_TASKS_TOOL: Tool = {
   }
 };
 
+const GET_PROJECTS_TOOL: Tool = {
+  name: "todoist_get_projects",
+  description: "Get a list of all projects with their IDs and names for use in other tools",
+  inputSchema: {
+    type: "object",
+    properties: {
+      limit: {
+        type: "number",
+        description: "Maximum number of projects to return (optional, default: 50)",
+        default: 50
+      }
+    }
+  }
+};
+
 const UPDATE_TASK_TOOL: Tool = {
   name: "todoist_update_task",
   description: "Update an existing task in Todoist by searching for it by name and then updating it",
@@ -206,6 +221,15 @@ function isGetTasksArgs(args: unknown): args is {
   );
 }
 
+function isGetProjectsArgs(args: unknown): args is {
+  limit?: number;
+} {
+  return (
+    typeof args === "object" &&
+    args !== null
+  );
+}
+
 function isUpdateTaskArgs(args: unknown): args is {
   task_name: string;
   content?: string;
@@ -245,7 +269,7 @@ function isCompleteTaskArgs(args: unknown): args is {
 
 // Tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [CREATE_TASK_TOOL, GET_TASKS_TOOL, UPDATE_TASK_TOOL, DELETE_TASK_TOOL, COMPLETE_TASK_TOOL],
+  tools: [CREATE_TASK_TOOL, GET_TASKS_TOOL, GET_PROJECTS_TOOL, UPDATE_TASK_TOOL, DELETE_TASK_TOOL, COMPLETE_TASK_TOOL],
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -333,6 +357,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         content: [{ 
           type: "text", 
           text: filteredTasks.length > 0 ? taskList : "No tasks found matching the criteria" 
+        }],
+        isError: false,
+      };
+    }
+
+    if (name === "todoist_get_projects") {
+      if (!isGetProjectsArgs(args)) {
+        throw new Error("Invalid arguments for todoist_get_projects");
+      }
+
+      const projects = await todoistClient.getProjects();
+      
+      // Apply limit if provided
+      let limitedProjects = projects;
+      if (args.limit && args.limit > 0) {
+        limitedProjects = projects.slice(0, args.limit);
+      }
+      
+      const projectList = limitedProjects.map(project => 
+        `- ${project.name} (ID: ${project.id})`
+      ).join('\n');
+      
+      return {
+        content: [{ 
+          type: "text", 
+          text: limitedProjects.length > 0 ? `Projects:\n${projectList}` : "No projects found" 
         }],
         isError: false,
       };
