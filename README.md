@@ -10,9 +10,10 @@ An MCP (Model Context Protocol) server implementation that integrates Claude wit
 ## Features
 
 * **Natural Language Task Management**: Create, update, complete, and delete tasks using everyday language
+* **Project Management**: Retrieve project information and assign tasks to specific projects
 * **Smart Task Search**: Find tasks using partial name matches
-* **Flexible Filtering**: Filter tasks by due date, priority, and other attributes
-* **Rich Task Details**: Support for descriptions, due dates, and priority levels
+* **Flexible Filtering**: Filter tasks by due date, priority, project, and other attributes
+* **Rich Task Details**: Support for descriptions, due dates, priority levels, and labels
 * **Intuitive Error Handling**: Clear feedback for better user experience
 
 ## Installation
@@ -32,11 +33,17 @@ npm install -g @abhiz123/todoist-mcp-server
 
 ## Tools
 
+### todoist_get_projects
+Retrieve all projects with their IDs and names:
+* Optional: limit (number of projects to return)
+* Returns formatted list of projects with IDs for use in other tools
+* Example: "Get all my projects" or "List my first 10 projects"
+
 ### todoist_create_task
 Create new tasks with various attributes:
 * Required: content (task title)
-* Optional: description, due date, priority level (1-4)
-* Example: "Create task 'Team Meeting' with description 'Weekly sync' due tomorrow"
+* Optional: description, due date, priority level (1-4), project_id, labels
+* Example: "Create task 'Team Meeting' in project 'Work' with label 'urgent' due tomorrow"
 
 ### todoist_get_tasks
 Retrieve and filter tasks:
@@ -90,11 +97,19 @@ Add to your `claude_desktop_config.json`:
 
 ## Example Usage
 
+### Getting Projects
+```
+"Show me all my projects"
+"List my projects with their IDs"
+"Get my first 5 projects"
+```
+
 ### Creating Tasks
 ```
 "Create task 'Team Meeting'"
 "Add task 'Review PR' due tomorrow at 2pm"
 "Create high priority task 'Fix bug' with description 'Critical performance issue'"
+"Create task 'Design Review' in project 'Work' with labels 'urgent' and 'review'"
 ```
 
 ### Getting Tasks
