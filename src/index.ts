@@ -166,6 +166,25 @@ const COMPLETE_TASK_TOOL: Tool = {
   }
 };
 
+const GET_WORKSPACE_USERS_TOOL: Tool = {
+  name: "todoist_get_workspace_users",
+  description: "Get workspace users to find user IDs for task assignment",
+  inputSchema: {
+    type: "object",
+    properties: {
+      workspace_id: {
+        type: "number",
+        description: "Optional workspace ID to filter users (defaults to all workspaces)"
+      },
+      limit: {
+        type: "number",
+        description: "Maximum number of users to return (optional, default: 100)",
+        default: 100
+      }
+    }
+  }
+};
+
 // Server implementation
 const server = new Server(
   {
@@ -267,9 +286,17 @@ function isCompleteTaskArgs(args: unknown): args is {
   );
 }
 
+// Type guard for workspace users
+function isGetWorkspaceUsersArgs(args: unknown): args is {
+  workspace_id?: number;
+  limit?: number;
+} {
+  return typeof args === "object" && args !== null;
+}
+
 // Tool handlers
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [CREATE_TASK_TOOL, GET_TASKS_TOOL, GET_PROJECTS_TOOL, UPDATE_TASK_TOOL, DELETE_TASK_TOOL, COMPLETE_TASK_TOOL],
+  tools: [CREATE_TASK_TOOL, GET_TASKS_TOOL, GET_PROJECTS_TOOL, UPDATE_TASK_TOOL, DELETE_TASK_TOOL, COMPLETE_TASK_TOOL, GET_WORKSPACE_USERS_TOOL],
 }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -488,6 +515,62 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         content: [{ 
           type: "text", 
           text: `Successfully completed task: "${matchingTask.content}"` 
+        }],
+        isError: false,
+      };
+    }
+
+    if (name === "todoist_get_workspace_users") {
+      if (!isGetWorkspaceUsersArgs(args)) {
+        throw new Error("Invalid arguments for todoist_get_workspace_users");
+      }
+
+      // Note: The TodoistApi TypeScript client doesn't have workspace users built-in
+      // We need to make a direct API call to /api/v1/workspaces/users
+      const apiToken = process.env.TODOIST_API_TOKEN!;
+      const apiUrl = "https://api.todoist.com/api/v1/workspaces/users";
+      
+      const params = new URLSearchParams();
+      if (args.workspace_id) {
+        params.append("workspace_id", args.workspace_id.toString());
+      }
+      if (args.limit) {
+        params.append("limit", args.limit.toString());
+      }
+      
+      const url = params.toString() ? `${apiUrl}?${params.toString()}` : apiUrl;
+      
+      const response = await fetch(url, {
+        headers: {
+          "Authorization": `Bearer ${apiToken}`,
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to get workspace users: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.workspace_users || data.workspace_users.length === 0) {
+        return {
+          content: [{ 
+            type: "text", 
+            text: "No workspace users found. This might mean you're not part of any shared workspaces." 
+          }],
+          isError: false,
+        };
+      }
+      
+      const userList = data.workspace_users.map((user: any) => 
+        `- ${user.full_name} (${user.user_email}) - User ID: ${user.user_id}`
+      ).join('\n');
+      
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Workspace Users:\n${userList}` 
         }],
         isError: false,
       };
