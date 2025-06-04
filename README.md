@@ -18,17 +18,30 @@ An MCP (Model Context Protocol) server implementation that integrates Claude wit
 
 ## Installation
 
-### Installing via Smithery
+Forked from https://github.com/abhiz123/todoist-mcp-server
 
-To install Todoist MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@abhiz123/todoist-mcp-server):
+### To run locally
+*Ensure you have the latest version of `node` installed.*
 
-```bash
-npx -y @smithery/cli install @abhiz123/todoist-mcp-server --client claude
-```
+1. Check out the repo
+2. `cd` into the root
+3. run `npm run build`
+4. Configure your tool's MCP settings like so:
 
-### Manual Installation
-```bash
-npm install -g @abhiz123/todoist-mcp-server
+```json
+{
+  "mcpServers": {
+    "todoist": {
+      "command": "node",
+      "args": [
+          "/path/to/repo/root"
+      ],
+      "env": {
+          "TODOIST_API_TOKEN": "YOUR_API_TOKEN"
+      }
+    }
+  }
+}
 ```
 
 ## Tools
@@ -38,6 +51,7 @@ Retrieve all projects with their IDs and names:
 * Optional: limit (number of projects to return)
 * Returns formatted list of projects with IDs for use in other tools
 * Example: "Get all my projects" or "List my first 10 projects"
+* Recommended to store these where your agent can look up the ID for creating tasks
 
 ### todoist_create_task
 Create new tasks with various attributes:
@@ -76,24 +90,6 @@ Remove tasks using natural language search:
 1. Log in to your Todoist account
 2. Navigate to Settings → Integrations
 3. Find your API token under "Developer"
-
-### Usage with Claude Desktop
-
-Add to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "todoist": {
-      "command": "npx",
-      "args": ["-y", "@abhiz123/todoist-mcp-server"],
-      "env": {
-        "TODOIST_API_TOKEN": "your_api_token_here"
-      }
-    }
-  }
-}
-```
 
 ## Example Usage
 
