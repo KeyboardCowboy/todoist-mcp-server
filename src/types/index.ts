@@ -6,9 +6,6 @@
  * and provide clear contracts for what data each tool expects.
  */
 
-// Import priority types from utility
-import { PriorityInput } from "../utils/priorityMapper.js";
-
 // Using MCP SDK types directly instead of custom ToolResponse interface
 
 /**
@@ -22,7 +19,7 @@ export interface CreateTaskArgs {
   /** Natural language due date like 'tomorrow', 'next Monday', 'Jan 23' */
   due_string?: string;
   /** Task priority: number (1-4) or string (P1-P4) where P1=urgent, P4=normal */
-  priority?: PriorityInput;
+  priority?: string;
   /** ID of the project to assign the task to */
   project_id?: string;
   /** Array of label names to assign to the task */
@@ -44,7 +41,7 @@ export interface GetTasksArgs {
   /** Natural language filter like 'today', 'tomorrow', 'next week', 'priority 1', 'overdue' */
   filter?: string;
   /** Filter by priority level: number (1-4) or string (P1-P4) */
-  priority?: PriorityInput;
+  priority?: string;
   /** Maximum number of tasks to return (default: 10) */
   limit?: number;
 }
@@ -70,7 +67,7 @@ export interface UpdateTaskArgs {
   /** New due date in natural language like 'tomorrow', 'next Monday' */
   due_string?: string;
   /** New priority level: number (1-4) or string (P1-P4) where P1=urgent, P4=normal */
-  priority?: PriorityInput;
+  priority?: string;
 }
 
 /**
