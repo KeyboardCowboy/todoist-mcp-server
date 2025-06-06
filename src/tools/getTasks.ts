@@ -10,6 +10,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { TodoistApi } from "@doist/todoist-api-typescript";
 import { BaseTool, ToolResponse } from "./BaseTool.js";
 import { GetTasksArgs } from "../types/index.js";
+import { mapPriority } from "../utils/priorityMapper.js";
 
 /**
  * Tool for retrieving tasks from Todoist with filtering capabilities
@@ -36,9 +37,12 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
           description: "Natural language filter like 'today', 'tomorrow', 'next week', 'priority 1', 'overdue' (optional)"
         },
         priority: {
-          type: "number",
-          description: "Filter by priority level (1-4) (optional)",
-          enum: [1, 2, 3, 4]
+          type: ["number", "string"],
+          description: "Filter by priority level: number (1-4) or string (P1-P4) (optional)",
+          oneOf: [
+            { type: "number", enum: [1, 2, 3, 4] },
+            { type: "string", enum: ["P1", "P2", "P3", "P4", "p1", "p2", "p3", "p4"] }
+          ]
         },
         limit: {
           type: "number",
@@ -85,7 +89,8 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
     // Apply additional client-side filters
     let filteredTasks = tasks;
     if (args.priority) {
-      filteredTasks = filteredTasks.filter(task => task.priority === args.priority);
+      const numericPriority = mapPriority(args.priority);
+      filteredTasks = filteredTasks.filter(task => task.priority === numericPriority);
     }
     
     // Apply limit

@@ -10,6 +10,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { TodoistApi } from "@doist/todoist-api-typescript";
 import { BaseTool, ToolResponse } from "./BaseTool.js";
 import { UpdateTaskArgs } from "../types/index.js";
+import { mapPriority } from "../utils/priorityMapper.js";
 
 /**
  * Tool for updating existing tasks in Todoist
@@ -44,9 +45,12 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
           description: "New due date in natural language like 'tomorrow', 'next Monday' (optional)"
         },
         priority: {
-          type: "number",
-          description: "New priority level from 1 (normal) to 4 (urgent) (optional)",
-          enum: [1, 2, 3, 4]
+          type: ["number", "string"],
+          description: "New priority level: number (1-4) or string (P1-P4) where P1=urgent, P4=normal (optional)",
+          oneOf: [
+            { type: "number", enum: [1, 2, 3, 4] },
+            { type: "string", enum: ["P1", "P2", "P3", "P4", "p1", "p2", "p3", "p4"] }
+          ]
         }
       },
       required: ["task_name"]
@@ -97,7 +101,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (args.content) updateData.content = args.content;
     if (args.description) updateData.description = args.description;
     if (args.due_string) updateData.dueString = args.due_string;
-    if (args.priority) updateData.priority = args.priority;
+    if (args.priority) updateData.priority = mapPriority(args.priority);
 
     // Update the task via Todoist API
     const updatedTask = await client.updateTask(matchingTask.id, updateData);

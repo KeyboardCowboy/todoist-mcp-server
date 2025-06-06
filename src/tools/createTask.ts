@@ -10,6 +10,7 @@ import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { TodoistApi } from "@doist/todoist-api-typescript";
 import { BaseTool, ToolResponse } from "./BaseTool.js";
 import { CreateTaskArgs } from "../types/index.js";
+import { mapPriority } from "../utils/priorityMapper.js";
 
 /**
  * Tool for creating new tasks in Todoist
@@ -45,9 +46,12 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
           description: "Natural language due date like 'tomorrow', 'next Monday', 'Jan 23' (optional)"
         },
         priority: {
-          type: "number",
-          description: "Task priority from 1 (normal) to 4 (urgent) (optional)",
-          enum: [1, 2, 3, 4]
+          type: ["number", "string"],
+          description: "Task priority: number (1-4) or string (P1-P4) where P1=urgent, P4=normal (optional)",
+          oneOf: [
+            { type: "number", enum: [1, 2, 3, 4] },
+            { type: "string", enum: ["P1", "P2", "P3", "P4", "p1", "p2", "p3", "p4"] }
+          ]
         },
         project_id: {
           type: "string",
@@ -113,7 +117,7 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
     // Add optional properties if provided
     if (args.description) taskData.description = args.description;
     if (args.due_string) taskData.dueString = args.due_string;
-    if (args.priority) taskData.priority = args.priority;
+    if (args.priority) taskData.priority = mapPriority(args.priority);
     if (args.project_id) taskData.projectId = args.project_id;
     if (args.labels && args.labels.length > 0) taskData.labels = args.labels;
     if (args.section_id) taskData.sectionId = args.section_id;
