@@ -1,0 +1,87 @@
+/**
+ * @fileoverview Type definitions for Todoist MCP Server
+ * 
+ * This file contains all the TypeScript interfaces and types used throughout
+ * the Todoist MCP server. These types ensure type safety for tool arguments
+ * and provide clear contracts for what data each tool expects.
+ */
+
+// Using MCP SDK types directly instead of custom ToolResponse interface
+
+/**
+ * Arguments for creating a new task in Todoist
+ */
+export interface CreateTaskArgs {
+  /** The title/content of the task (required) */
+  content: string;
+  /** Optional detailed description of the task */
+  description?: string;
+  /** Natural language due date like 'tomorrow', 'next Monday', 'Jan 23' */
+  due_string?: string;
+  /** Task priority from 1 (normal) to 4 (urgent) */
+  priority?: number;
+  /** ID of the project to assign the task to */
+  project_id?: string;
+  /** Array of label names to assign to the task */
+  labels?: string[];
+  /** ID of the section within the project to place the task */
+  section_id?: string;
+  /** ID of the parent task to create this as a subtask */
+  parent_id?: string;
+  /** ID of the user to assign this task to */
+  assignee_id?: number;
+}
+
+/**
+ * Arguments for retrieving tasks from Todoist with various filters
+ */
+export interface GetTasksArgs {
+  /** Filter tasks by specific project ID */
+  project_id?: string;
+  /** Natural language filter like 'today', 'tomorrow', 'next week', 'priority 1', 'overdue' */
+  filter?: string;
+  /** Filter by priority level (1-4) */
+  priority?: number;
+  /** Maximum number of tasks to return (default: 10) */
+  limit?: number;
+}
+
+/**
+ * Arguments for retrieving projects from Todoist
+ */
+export interface GetProjectsArgs {
+  /** Maximum number of projects to return (default: 50) */
+  limit?: number;
+}
+
+/**
+ * Arguments for updating an existing task in Todoist
+ */
+export interface UpdateTaskArgs {
+  /** Name/content of the task to search for and update (required) */
+  task_name: string;
+  /** New content/title for the task */
+  content?: string;
+  /** New description for the task */
+  description?: string;
+  /** New due date in natural language like 'tomorrow', 'next Monday' */
+  due_string?: string;
+  /** New priority level from 1 (normal) to 4 (urgent) */
+  priority?: number;
+}
+
+/**
+ * Arguments for deleting a task from Todoist
+ */
+export interface DeleteTaskArgs {
+  /** Name/content of the task to search for and delete (required) */
+  task_name: string;
+}
+
+/**
+ * Arguments for marking a task as complete in Todoist
+ */
+export interface CompleteTaskArgs {
+  /** Name/content of the task to search for and complete (required) */
+  task_name: string;
+} 
