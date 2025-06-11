@@ -45,12 +45,31 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
           description: "New due date in natural language like 'tomorrow', 'next Monday' (optional)"
         },
         priority: {
-          type: ["number", "string"],
-          description: "New priority level: number (1-4) or string (P1-P4) where P1=urgent, P4=normal (optional)",
-          oneOf: [
-            { type: "number", enum: [1, 2, 3, 4] },
-            { type: "string", enum: ["P1", "P2", "P3", "P4", "p1", "p2", "p3", "p4"] }
-          ]
+          type: "string",
+          description: "Task priority: number ('1'-'4') or string (P1-P4) where P1=urgent, P4=normal (optional)",
+        },
+        project_id: {
+          type: "string",
+          description: "ID of the project to move the task to (optional)"
+        },
+        labels: {
+          type: "array",
+          items: {
+            type: "string"
+          },
+          description: "Array of label names to assign to the task (optional)"
+        },
+        section_id: {
+          type: "string", 
+          description: "ID of the section within the project to place the task (optional)"
+        },
+        parent_id: {
+          type: "string",
+          description: "ID of the parent task to make this a subtask of (optional)"
+        },
+        assignee_id: {
+          type: "number",
+          description: "ID of the user to assign this task to (optional)"
         }
       },
       required: ["task_name"]
@@ -102,6 +121,11 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (args.description) updateData.description = args.description;
     if (args.due_string) updateData.dueString = args.due_string;
     if (args.priority) updateData.priority = mapPriority(args.priority);
+    if (args.project_id) updateData.projectId = args.project_id;
+    if (args.labels) updateData.labels = args.labels;
+    if (args.section_id) updateData.sectionId = args.section_id;
+    if (args.parent_id) updateData.parentId = args.parent_id;
+    if (args.assignee_id) updateData.assigneeId = args.assignee_id;
 
     // Update the task via Todoist API
     const updatedTask = await client.updateTask(matchingTask.id, updateData);
@@ -111,6 +135,11 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (updatedTask.description) responseText += `\nNew Description: ${updatedTask.description}`;
     if (updatedTask.due) responseText += `\nNew Due Date: ${updatedTask.due.string}`;
     if (updatedTask.priority) responseText += `\nNew Priority: ${updatedTask.priority}`;
+    if (updatedTask.projectId) responseText += `\nNew Project ID: ${updatedTask.projectId}`;
+    if (updatedTask.labels && updatedTask.labels.length > 0) responseText += `\nNew Labels: ${updatedTask.labels.join(', ')}`;
+    if (updatedTask.sectionId) responseText += `\nNew Section ID: ${updatedTask.sectionId}`;
+    if (updatedTask.parentId) responseText += `\nNew Parent Task ID: ${updatedTask.parentId}`;
+    if (updatedTask.assigneeId) responseText += `\nNew Assignee ID: ${updatedTask.assigneeId}`;
     
     return {
       content: [{ 

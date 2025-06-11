@@ -70,7 +70,17 @@ export interface UpdateTaskArgs {
   /** New due date in natural language like 'tomorrow', 'next Monday' */
   due_string?: string;
   /** New priority level: number (1-4) or string (P1-P4) where P1=urgent, P4=normal */
-  priority?: PriorityInput;
+  priority?: string;
+  /** ID of the project to move the task to */
+  project_id?: string;
+  /** Array of label names to assign to the task */
+  labels?: string[];
+  /** ID of the section within the project to place the task */
+  section_id?: string;
+  /** ID of the parent task to make this a subtask of */
+  parent_id?: string;
+  /** ID of the user to assign this task to */
+  assignee_id?: number;
 }
 
 /**
