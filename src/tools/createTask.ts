@@ -71,6 +71,10 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
         responsible_uid: {
           type: "string",
           description: "UID of the user to assign as responsible for this task (optional)"
+        },
+        deadline_date: {
+          type: "string",
+          description: "Deadline date for the task (YYYY-MM-DD or similar, optional)"
         }
       },
       required: ["content"]
@@ -119,6 +123,7 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
     if (args.section_id) taskData.sectionId = args.section_id;
     if (args.parent_id) taskData.parentId = args.parent_id;
     if (args.responsible_uid) taskData.responsibleUid = args.responsible_uid;
+    if (args.deadline_date) taskData.deadlineDate = args.deadline_date;
     
     // Create the task via Todoist API
     const task = await client.addTask(taskData);
@@ -133,6 +138,7 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
     if (task.sectionId) responseText += `\nSection ID: ${task.sectionId}`;
     if (task.parentId) responseText += `\nParent Task ID: ${task.parentId}`;
     if (task.responsibleUid) responseText += `\nAssigned to: ${task.responsibleUid}`;
+    if (task.deadline && task.deadline.date) responseText += `\nDeadline: ${task.deadline.date}`;
     
     return {
       content: [{ 

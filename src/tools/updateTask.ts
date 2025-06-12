@@ -69,6 +69,10 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
         responsible_uid: {
           type: "string",
           description: "UID of the user to assign as responsible for this task (optional)"
+        },
+        deadline_date: {
+          type: "string",
+          description: "Deadline date for the task (YYYY-MM-DD or similar, optional)"
         }
       },
       required: ["task_id"]
@@ -86,7 +90,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
    * 
    * This method handles the complete task update workflow:
    * 1. Uses the provided task_id to fetch the task
-   * 2. Builds update data from provided arguments
+   * 2. Builds update data from provided arguments 
    * 3. Updates the task via the Todoist API
    * 4. Returns detailed confirmation with updated values
    * 
@@ -121,6 +125,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (args.section_id) updateData.sectionId = args.section_id;
     if (args.parent_id) updateData.parentId = args.parent_id;
     if (args.responsible_uid) updateData.responsibleUid = args.responsible_uid;
+    if (args.deadline_date) updateData.deadlineDate = args.deadline_date;
 
     // Update the task via Todoist API
     const updatedTask = await client.updateTask(taskId, updateData);
@@ -135,6 +140,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (updatedTask.sectionId) responseText += `\nNew Section ID: ${updatedTask.sectionId}`;
     if (updatedTask.parentId) responseText += `\nNew Parent Task ID: ${updatedTask.parentId}`;
     if (updatedTask.responsibleUid) responseText += `\nNew Responsible UID: ${updatedTask.responsibleUid}`;
+    if (updatedTask.deadline && updatedTask.deadline.date) responseText += `\nNew Deadline: ${updatedTask.deadline.date}`;
     
     return {
       content: [{

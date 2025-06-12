@@ -4,6 +4,7 @@ interface FilterPatterns {
   project: Record<string, string>;
   label: Record<string, string>;
   status: Record<string, string>;
+  deadline: Record<string, string>;
 }
 
 const FILTER_PATTERNS: FilterPatterns = {
@@ -99,7 +100,22 @@ const FILTER_PATTERNS: FilterPatterns = {
     'assigned to me': 'assigned by: others',
     'delegated': 'assigned by: me',
     'shared': 'shared'
-  }
+  },
+  deadline: {
+    'has deadline': '!no deadline',
+    'with deadline': '!no deadline',
+    'deadline': '!no deadline',
+    'no deadline': '!deadline',
+    'without deadline': '!deadline',
+    'deadline today': 'deadline: today',
+    'deadline tomorrow': 'deadline: tomorrow',
+    'deadline this week': 'deadline before: next week',
+    'deadline next week': 'deadline after: this week & deadline before: 2 weeks',
+    'deadline none': '!deadline',
+    'deadline before': 'deadline before:',
+    'deadline after': 'deadline after:',
+    'deadline on': 'deadline:',
+  },
 };
 
 /**
@@ -131,6 +147,21 @@ export function formatFilter(input: string): string {
     Object.entries(patternCategory).forEach(([phrase, syntax]) => {
       allPatterns.push({phrase: phrase as string, syntax: syntax as string});
     });
+  });
+  
+  // Special handling for deadline before/after/on with dates
+  // e.g., "deadline before Sept 5 2025" => "deadline before: Sept 5 2025"
+  const deadlineRegexes = [
+    { regex: /deadline before ([\w\s,\-\/]+)/i, syntax: (date: string) => `deadline before: ${date.trim()}` },
+    { regex: /deadline after ([\w\s,\-\/]+)/i, syntax: (date: string) => `deadline after: ${date.trim()}` },
+    { regex: /deadline on ([\w\s,\-\/]+)/i, syntax: (date: string) => `deadline: ${date.trim()}` },
+  ];
+  deadlineRegexes.forEach(({regex, syntax}) => {
+    const match = normalized.match(regex);
+    if (match && match[1]) {
+      foundPatterns.push(syntax(match[1]));
+      workingText = workingText.replace(match[0], '').trim();
+    }
   });
   
   // Sort by phrase length descending to match longer phrases first
@@ -201,6 +232,14 @@ export function getFilterExamples(): Array<{input: string, output: string}> {
     { input: "waiting tasks in work", output: "@waiting_for & #Work" },
     { input: "important tasks due tomorrow", output: "@important & tomorrow" },
     { input: "no date low priority", output: "p3 & no date" },
-    { input: "work urgent", output: "p1 & #Work" }
+    { input: "work urgent", output: "p1 & #Work" },
+    { input: "tasks with deadline", output: "!no deadline" },
+    { input: "no deadline", output: "!deadline" },
+    { input: "deadline before Sept 5 2025", output: "deadline before: Sept 5 2025" },
+    { input: "deadline after Jan 1 2024", output: "deadline after: Jan 1 2024" },
+    { input: "deadline on March 10 2025", output: "deadline: March 10 2025" },
+    { input: "deadline today", output: "deadline: today" },
+    { input: "deadline this week", output: "deadline before: next week" },
+    { input: "deadline next week", output: "deadline after: this week & deadline before: 2 weeks" },
   ];
 } 

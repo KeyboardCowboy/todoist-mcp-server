@@ -30,6 +30,8 @@ export interface CreateTaskArgs {
   parent_id?: string;
   /** ID of the user to assign this task to */
   responsible_uid?: string;
+  /** Deadline date for the task (YYYY-MM-DD or similar, optional) */
+  deadline_date?: string;
 }
 
 /**
@@ -80,6 +82,8 @@ export interface UpdateTaskArgs {
   parent_id?: string;
   /** ID of the user to assign this task to */
   responsible_uid?: string;
+  /** Deadline date for the task (YYYY-MM-DD or similar, optional) */
+  deadline_date?: string;
 }
 
 /**
