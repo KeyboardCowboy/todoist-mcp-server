@@ -29,7 +29,7 @@ export interface CreateTaskArgs {
   /** ID of the parent task to create this as a subtask */
   parent_id?: string;
   /** ID of the user to assign this task to */
-  assignee_id?: number;
+  responsible_uid?: string;
 }
 
 /**
@@ -79,21 +79,21 @@ export interface UpdateTaskArgs {
   /** ID of the parent task to make this a subtask of */
   parent_id?: string;
   /** ID of the user to assign this task to */
-  assignee_id?: number;
+  responsible_uid?: string;
 }
 
 /**
  * Arguments for deleting a task from Todoist
  */
 export interface DeleteTaskArgs {
-  /** Name/content of the task to search for and delete (required) */
-  task_name: string;
+  /** ID of the task to delete (required) */
+  task_id: string;
 }
 
 /**
  * Arguments for marking a task as complete in Todoist
  */
 export interface CompleteTaskArgs {
-  /** Name/content of the task to search for and complete (required) */
-  task_name: string;
+  /** ID of the task to complete (required) */
+  task_id: string;
 } 

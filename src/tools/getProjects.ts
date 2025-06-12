@@ -55,21 +55,15 @@ export class GetProjectsTool extends BaseTool<GetProjectsArgs> {
     // Retrieve all projects from Todoist
     const projects = await client.getProjects();
     
-    // Apply limit if provided
-    let limitedProjects = projects;
-    if (args.limit && args.limit > 0) {
-      limitedProjects = projects.slice(0, args.limit);
-    }
-    
     // Format response with project names and IDs
-    const projectList = limitedProjects.map(project => 
+    const projectList = projects.results.map((project: any) => 
       `- ${project.name} (ID: ${project.id})`
     ).join('\n');
     
     return {
       content: [{ 
         type: "text", 
-        text: limitedProjects.length > 0 ? `Projects:\n${projectList}` : "No projects found" 
+        text: projects.results.length > 0 ? `Projects:\n${projectList}` : "No projects found" 
       }],
       isError: false,
     };

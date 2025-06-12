@@ -84,13 +84,14 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
     
     // Retrieve tasks from Todoist API
     // If no filters provided, default to showing all tasks
-    const tasks = await client.getTasks(Object.keys(apiParams).length > 0 ? apiParams : undefined);
+    const tasksResponse = await client.getTasks(Object.keys(apiParams).length > 0 ? apiParams : undefined);
+    const tasks = tasksResponse.results;
 
     // Apply additional client-side filters
     let filteredTasks = tasks;
     if (args.priority) {
       const numericPriority = mapPriority(args.priority);
-      filteredTasks = filteredTasks.filter(task => task.priority === numericPriority);
+      filteredTasks = filteredTasks.filter((task: any) => task.priority === numericPriority);
     }
     
     // Apply limit
@@ -99,8 +100,8 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
     }
     
     // Format response with task details including taskID for parent-child relationships
-    const taskList = filteredTasks.map(task => 
-      `- ${task.content} (ID: ${task.id})${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}${task.parentId ? `\n  Parent Task ID: ${task.parentId}` : ''}`
+    const taskList = filteredTasks.map((task: any) => 
+      `- ${task.content} (ID: ${task.id})${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}${task.parentId ? `\n  Parent Task ID: ${task.parentId}` : ''}${task.responsibleUid ? `\n  Responsible UID: ${task.responsibleUid}` : ''}`
     ).join('\n\n');
     
     return {

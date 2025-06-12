@@ -15,6 +15,8 @@ An MCP (Model Context Protocol) server implementation that integrates Claude wit
 * **Rich Task Details**: Support for descriptions, due dates, priority levels, and labels
 * **Intuitive Error Handling**: Clear feedback for better user experience
 
+> **Note:** Deadlines are not supported in the current version of the Todoist API. Only due dates are available for task scheduling and filtering.
+
 ## Installation
 
 Forked from https://github.com/abhiz123/todoist-mcp-server
