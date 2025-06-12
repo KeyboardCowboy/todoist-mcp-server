@@ -71,7 +71,6 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
           type: "number",
           description: "ID of the user to assign this task to (optional)"
         }
-        }
       },
       required: ["task_name"]
     }
