@@ -46,7 +46,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
         },
         priority: {
           type: "string",
-          description: "Task priority: number ('1'-'4') or string (P1-P4) where P1=urgent, P4=normal (optional)",
+          description: "Task priority: number ('1'-'4') or string (P1-P4) where P1=urgent, P4=normal (optional)"
         },
         project_id: {
           type: "string",
@@ -70,6 +70,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
         assignee_id: {
           type: "number",
           description: "ID of the user to assign this task to (optional)"
+        }
         }
       },
       required: ["task_name"]
