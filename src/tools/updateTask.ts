@@ -1,9 +1,8 @@
 /**
  * @fileoverview Update Task tool for Todoist MCP server
  * 
- * This tool allows users to update existing tasks by searching for them
- * by name and modifying their properties like content, description, due date,
- * and priority.
+ * This tool allows users to update existing tasks by task_id only.
+ * You can modify properties like content (task name), description, due date, and priority.
  */
 
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
@@ -24,13 +23,13 @@ import { mapPriority } from "../utils/priorityMapper.js";
 export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
   readonly definition: Tool = {
     name: "todoist_update_task",
-    description: "Update an existing task in Todoist by searching for it by name and then updating it",
+    description: "Update an existing task in Todoist by task_id. You can update content (task name), description, due date, priority, etc. Task ID is required.",
     inputSchema: {
       type: "object",
       properties: {
-        task_name: {
+        task_id: {
           type: "string",
-          description: "Name/content of the task to search for and update"
+          description: "ID of the task to update (required)"
         },
         content: {
           type: "string",
@@ -72,24 +71,21 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
           description: "ID of the user to assign this task to (optional)"
         }
       },
-      required: ["task_name"]
+      required: ["task_id"]
     }
   };
 
   protected validateArgs(args: unknown): args is UpdateTaskArgs {
-    // Basic object validation handled by BaseTool, now just validate required task_name field
+    // Only accept task_id (required)
     const argsObj = args as Record<string, unknown>;
-    return (
-      "task_name" in argsObj &&
-      typeof argsObj.task_name === "string"
-    );
+    return typeof argsObj.task_id === "string" && argsObj.task_id.length > 0;
   }
 
   /**
    * Executes task update directly with the Todoist API
    * 
    * This method handles the complete task update workflow:
-   * 1. Searches for the task by name (case-insensitive)
+   * 1. Uses the provided task_id to fetch the task
    * 2. Builds update data from provided arguments
    * 3. Updates the task via the Todoist API
    * 4. Returns detailed confirmation with updated values
@@ -99,17 +95,16 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
    * @returns Promise resolving to update confirmation or error
    */
   protected async execute(args: UpdateTaskArgs, client: TodoistApi): Promise<ToolResponse> {
-    // Search for the task by name (case-insensitive)
-    const tasks = await client.getTasks();
-    const matchingTask = tasks.find(task => 
-      task.content.toLowerCase().includes(args.task_name.toLowerCase())
-    );
+    const taskId = args.task_id as string;
+    let matchingTask: any = undefined;
 
-    if (!matchingTask) {
+    try {
+      matchingTask = await client.getTask(taskId);
+    } catch (e) {
       return {
-        content: [{ 
-          type: "text", 
-          text: `Could not find a task matching "${args.task_name}"` 
+        content: [{
+          type: "text",
+          text: `Could not find a task with ID \"${taskId}\"`
         }],
         isError: true,
       };
@@ -128,10 +123,10 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (args.assignee_id) updateData.assigneeId = args.assignee_id;
 
     // Update the task via Todoist API
-    const updatedTask = await client.updateTask(matchingTask.id, updateData);
+    const updatedTask = await client.updateTask(taskId, updateData);
     
     // Format detailed response showing all updated values including taskID for future reference
-    let responseText = `Task "${matchingTask.content}" updated:\nNew Title: ${updatedTask.content}\nTask ID: ${updatedTask.id}`;
+    let responseText = `Task "${updatedTask.content}" updated:\nTask ID: ${updatedTask.id}`;
     if (updatedTask.description) responseText += `\nNew Description: ${updatedTask.description}`;
     if (updatedTask.due) responseText += `\nNew Due Date: ${updatedTask.due.string}`;
     if (updatedTask.priority) responseText += `\nNew Priority: ${updatedTask.priority}`;
@@ -142,8 +137,8 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (updatedTask.assigneeId) responseText += `\nNew Assignee ID: ${updatedTask.assigneeId}`;
     
     return {
-      content: [{ 
-        type: "text", 
+      content: [{
+        type: "text",
         text: responseText
       }],
       isError: false,
