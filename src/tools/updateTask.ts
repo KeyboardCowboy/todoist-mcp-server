@@ -71,7 +71,6 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
           type: "number",
           description: "ID of the user to assign this task to (optional)"
         }
-        }
       },
       required: ["task_name"]
     }
@@ -131,8 +130,8 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     // Update the task via Todoist API
     const updatedTask = await client.updateTask(matchingTask.id, updateData);
     
-    // Format detailed response showing all updated values
-    let responseText = `Task "${matchingTask.content}" updated:\nNew Title: ${updatedTask.content}`;
+    // Format detailed response showing all updated values including taskID for future reference
+    let responseText = `Task "${matchingTask.content}" updated:\nNew Title: ${updatedTask.content}\nTask ID: ${updatedTask.id}`;
     if (updatedTask.description) responseText += `\nNew Description: ${updatedTask.description}`;
     if (updatedTask.due) responseText += `\nNew Due Date: ${updatedTask.due.string}`;
     if (updatedTask.priority) responseText += `\nNew Priority: ${updatedTask.priority}`;
