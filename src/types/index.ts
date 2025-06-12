@@ -58,8 +58,10 @@ export interface GetProjectsArgs {
  * Arguments for updating an existing task in Todoist
  */
 export interface UpdateTaskArgs {
-  /** Name/content of the task to search for and update (required) */
-  task_name: string;
+  /** ID of the task to update directly (preferred if known) */
+  task_id?: string;
+  /** Name/content of the task to search for and update (used if task_id is not provided) */
+  task_name?: string;
   /** New content/title for the task */
   content?: string;
   /** New description for the task */
