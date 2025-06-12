@@ -11,6 +11,7 @@ import { TodoistApi } from "@doist/todoist-api-typescript";
 import { BaseTool, ToolResponse } from "./BaseTool.js";
 import { GetTasksArgs } from "../types/index.js";
 import { mapPriority } from "../utils/priorityMapper.js";
+import { handleTodoistApiError } from "../utils/errorHandler.js";
 
 /**
  * Tool for retrieving tasks from Todoist with filtering capabilities
@@ -63,7 +64,7 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
    * 
    * This method handles the complete task retrieval workflow:
    * 1. Builds API parameters from provided filters
-   * 2. Retrieves tasks via the Todoist API
+   * 2. Retrieves tasks via the Todoist API with promise-based error handling
    * 3. Applies additional client-side filtering (priority)
    * 4. Applies result limiting
    * 5. Formats response with task details
@@ -82,33 +83,40 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
       apiParams.filter = args.filter;
     }
     
-    // Retrieve tasks from Todoist API
-    // If no filters provided, default to showing all tasks
-    const tasks = await client.getTasks(Object.keys(apiParams).length > 0 ? apiParams : undefined);
-
-    // Apply additional client-side filters
-    let filteredTasks = tasks;
-    if (args.priority) {
-      const numericPriority = mapPriority(args.priority);
-      filteredTasks = filteredTasks.filter(task => task.priority === numericPriority);
-    }
-    
-    // Apply limit
-    if (args.limit && args.limit > 0) {
-      filteredTasks = filteredTasks.slice(0, args.limit);
-    }
-    
-    // Format response with task details
-    const taskList = filteredTasks.map(task => 
-      `- ${task.content}${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}`
-    ).join('\n\n');
-    
-    return {
-      content: [{ 
-        type: "text", 
-        text: filteredTasks.length > 0 ? taskList : "No tasks found matching the criteria" 
-      }],
-      isError: false,
-    };
+    // Retrieve tasks from Todoist API with promise-based error handling
+    return client.getTasks(Object.keys(apiParams).length > 0 ? apiParams : undefined)
+      .then(tasks => {
+        // Apply additional client-side filters
+        let filteredTasks = tasks;
+        if (args.priority) {
+          const numericPriority = mapPriority(args.priority);
+          filteredTasks = filteredTasks.filter(task => task.priority === numericPriority);
+        }
+        
+        // Apply limit
+        if (args.limit && args.limit > 0) {
+          filteredTasks = filteredTasks.slice(0, args.limit);
+        }
+        
+        // Format response with task details
+        const taskList = filteredTasks.map(task => 
+          `- ${task.content}${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}`
+        ).join('\n\n');
+        
+        return {
+          content: [{ 
+            type: "text" as const, 
+            text: filteredTasks.length > 0 ? taskList : "No tasks found matching the criteria" 
+          }],
+          isError: false,
+        };
+      })
+      .catch((error: any) => {
+        // Use centralized error handler with filter context
+        return handleTodoistApiError(error, { 
+          filter: args.filter,
+          project_id: args.project_id 
+        });
+      });
   }
 } 

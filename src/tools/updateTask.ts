@@ -11,6 +11,7 @@ import { TodoistApi } from "@doist/todoist-api-typescript";
 import { BaseTool, ToolResponse } from "./BaseTool.js";
 import { UpdateTaskArgs } from "../types/index.js";
 import { mapPriority } from "../utils/priorityMapper.js";
+import { handleTodoistApiError } from "../utils/errorHandler.js";
 
 /**
  * Tool for updating existing tasks in Todoist
@@ -99,54 +100,70 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
    * @returns Promise resolving to update confirmation or error
    */
   protected async execute(args: UpdateTaskArgs, client: TodoistApi): Promise<ToolResponse> {
-    // Search for the task by name (case-insensitive)
-    const tasks = await client.getTasks();
-    const matchingTask = tasks.find(task => 
-      task.content.toLowerCase().includes(args.task_name.toLowerCase())
-    );
+    // Search for the task by name (case-insensitive) with promise-based error handling
+    return client.getTasks()
+      .then(tasks => {
+        const matchingTask = tasks.find(task => 
+          task.content.toLowerCase().includes(args.task_name.toLowerCase())
+        );
 
-    if (!matchingTask) {
-      return {
-        content: [{ 
-          type: "text", 
-          text: `Could not find a task matching "${args.task_name}"` 
-        }],
-        isError: true,
-      };
-    }
+        if (!matchingTask) {
+          return {
+            content: [{ 
+              type: "text" as const, 
+              text: `Could not find a task matching "${args.task_name}"` 
+            }],
+            isError: true,
+          };
+        }
 
-    // Build update data with provided values
-    const updateData: any = {};
-    if (args.content) updateData.content = args.content;
-    if (args.description) updateData.description = args.description;
-    if (args.due_string) updateData.dueString = args.due_string;
-    if (args.priority) updateData.priority = mapPriority(args.priority);
-    if (args.project_id) updateData.projectId = args.project_id;
-    if (args.labels) updateData.labels = args.labels;
-    if (args.section_id) updateData.sectionId = args.section_id;
-    if (args.parent_id) updateData.parentId = args.parent_id;
-    if (args.assignee_id) updateData.assigneeId = args.assignee_id;
+        // Build update data with provided values
+        const updateData: any = {};
+        if (args.content) updateData.content = args.content;
+        if (args.description) updateData.description = args.description;
+        if (args.due_string) updateData.dueString = args.due_string;
+        if (args.priority) updateData.priority = mapPriority(args.priority);
+        if (args.project_id) updateData.projectId = args.project_id;
+        if (args.labels) updateData.labels = args.labels;
+        if (args.section_id) updateData.sectionId = args.section_id;
+        if (args.parent_id) updateData.parentId = args.parent_id;
+        if (args.assignee_id) updateData.assigneeId = args.assignee_id;
 
-    // Update the task via Todoist API
-    const updatedTask = await client.updateTask(matchingTask.id, updateData);
-    
-    // Format detailed response showing all updated values
-    let responseText = `Task "${matchingTask.content}" updated:\nNew Title: ${updatedTask.content}`;
-    if (updatedTask.description) responseText += `\nNew Description: ${updatedTask.description}`;
-    if (updatedTask.due) responseText += `\nNew Due Date: ${updatedTask.due.string}`;
-    if (updatedTask.priority) responseText += `\nNew Priority: ${updatedTask.priority}`;
-    if (updatedTask.projectId) responseText += `\nNew Project ID: ${updatedTask.projectId}`;
-    if (updatedTask.labels && updatedTask.labels.length > 0) responseText += `\nNew Labels: ${updatedTask.labels.join(', ')}`;
-    if (updatedTask.sectionId) responseText += `\nNew Section ID: ${updatedTask.sectionId}`;
-    if (updatedTask.parentId) responseText += `\nNew Parent Task ID: ${updatedTask.parentId}`;
-    if (updatedTask.assigneeId) responseText += `\nNew Assignee ID: ${updatedTask.assigneeId}`;
-    
-    return {
-      content: [{ 
-        type: "text", 
-        text: responseText
-      }],
-      isError: false,
-    };
+        // Update the task via Todoist API with promise-based error handling
+        return client.updateTask(matchingTask.id, updateData)
+          .then(updatedTask => {
+            // Format detailed response showing all updated values
+            let responseText = `Task "${matchingTask.content}" updated:\nNew Title: ${updatedTask.content}`;
+            if (updatedTask.description) responseText += `\nNew Description: ${updatedTask.description}`;
+            if (updatedTask.due) responseText += `\nNew Due Date: ${updatedTask.due.string}`;
+            if (updatedTask.priority) responseText += `\nNew Priority: ${updatedTask.priority}`;
+            if (updatedTask.projectId) responseText += `\nNew Project ID: ${updatedTask.projectId}`;
+            if (updatedTask.labels && updatedTask.labels.length > 0) responseText += `\nNew Labels: ${updatedTask.labels.join(', ')}`;
+            if (updatedTask.sectionId) responseText += `\nNew Section ID: ${updatedTask.sectionId}`;
+            if (updatedTask.parentId) responseText += `\nNew Parent Task ID: ${updatedTask.parentId}`;
+            if (updatedTask.assigneeId) responseText += `\nNew Assignee ID: ${updatedTask.assigneeId}`;
+            
+            return {
+              content: [{ 
+                type: "text" as const, 
+                text: responseText
+              }],
+              isError: false,
+            };
+          })
+          .catch(error => {
+            // Handle updateTask API errors with context
+            return handleTodoistApiError(error, { 
+              task_name: args.task_name,
+              project_id: args.project_id 
+            });
+          });
+      })
+      .catch(error => {
+        // Handle getTasks API errors with context
+        return handleTodoistApiError(error, { 
+          task_name: args.task_name 
+        });
+      });
   }
 } 
