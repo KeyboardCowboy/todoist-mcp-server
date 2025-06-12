@@ -46,12 +46,8 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
           description: "Natural language due date like 'tomorrow', 'next Monday', 'Jan 23' (optional)"
         },
         priority: {
-          type: ["number", "string"],
-          description: "Task priority: number (1-4) or string (P1-P4) where P1=urgent, P4=normal (optional)",
-          oneOf: [
-            { type: "number", enum: [1, 2, 3, 4] },
-            { type: "string", enum: ["P1", "P2", "P3", "P4", "p1", "p2", "p3", "p4"] }
-          ]
+          type: "string",
+          description: "Task priority: number ('1'-'4') or string (P1-P4) where P1=urgent, P4=normal (optional)",
         },
         project_id: {
           type: "string",
@@ -127,8 +123,8 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
     // Create the task via Todoist API
     const task = await client.addTask(taskData);
     
-    // Build enhanced response showing all set properties
-    let responseText = `Task created:\nTitle: ${task.content}`;
+    // Build enhanced response showing all set properties including taskID for future reference
+    let responseText = `Task created:\nTitle: ${task.content}\nTask ID: ${task.id}`;
     if (task.description) responseText += `\nDescription: ${task.description}`;
     if (task.due) responseText += `\nDue: ${task.due.string}`;
     if (task.priority) responseText += `\nPriority: ${task.priority}`;

@@ -12,12 +12,14 @@ import { BaseTool, ToolResponse } from "./BaseTool.js";
 import { GetTasksArgs } from "../types/index.js";
 import { mapPriority } from "../utils/priorityMapper.js";
 import { handleTodoistApiError } from "../utils/errorHandler.js";
+import { formatFilter, getFilterExamples } from "../utils/filterFormatter.js";
 
 /**
  * Tool for retrieving tasks from Todoist with filtering capabilities
  * 
  * This tool is self-contained and handles all aspects of task retrieval:
  * - Argument validation
+ * - Natural language filter conversion to Todoist syntax
  * - API interaction with filtering
  * - Additional client-side filtering (priority)
  * - Response formatting with task details
@@ -35,15 +37,11 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
         },
         filter: {
           type: "string",
-          description: "Natural language filter like 'today', 'tomorrow', 'next week', 'priority 1', 'overdue' (optional)"
+          description: "Filter tasks using natural language (e.g. 'urgent tasks due today', 'high priority work project', 'overdue tasks') or Todoist syntax (e.g. 'p1 & today', '#Work & @urgent'). Natural language gets converted to proper Todoist filter syntax automatically."
         },
         priority: {
-          type: ["number", "string"],
-          description: "Filter by priority level: number (1-4) or string (P1-P4) (optional)",
-          oneOf: [
-            { type: "number", enum: [1, 2, 3, 4] },
-            { type: "string", enum: ["P1", "P2", "P3", "P4", "p1", "p2", "p3", "p4"] }
-          ]
+          type: "string",
+          description: "Task priority: number ('1'-'4') or string (P1-P4) where P1=urgent, P4=normal (optional)",
         },
         limit: {
           type: "number",
@@ -80,7 +78,9 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
       apiParams.projectId = args.project_id;
     }
     if (args.filter) {
-      apiParams.filter = args.filter;
+      // Convert natural language to Todoist filter syntax
+      const formattedFilter = formatFilter(args.filter);
+      apiParams.filter = formattedFilter;
     }
     
     // Retrieve tasks from Todoist API with promise-based error handling
@@ -100,7 +100,7 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
         
         // Format response with task details
         const taskList = filteredTasks.map(task => 
-          `- ${task.content}${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}`
+          `- ${task.content} (ID: ${task.id})${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}${task.parentId ? `\n  Parent Task ID: ${task.parentId}` : ''}`
         ).join('\n\n');
         
         return {
