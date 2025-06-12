@@ -98,9 +98,9 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
       filteredTasks = filteredTasks.slice(0, args.limit);
     }
     
-    // Format response with task details
+    // Format response with task details including taskID for parent-child relationships
     const taskList = filteredTasks.map(task => 
-      `- ${task.content}${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}`
+      `- ${task.content} (ID: ${task.id})${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}${task.parentId ? `\n  Parent Task ID: ${task.parentId}` : ''}`
     ).join('\n\n');
     
     return {
