@@ -68,9 +68,9 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
           type: "string",
           description: "ID of the parent task to create this as a subtask (optional)"
         },
-        assignee_id: {
-          type: "number",
-          description: "ID of the user to assign this task to (optional)"
+        responsible_uid: {
+          type: "string",
+          description: "UID of the user to assign as responsible for this task (optional)"
         }
       },
       required: ["content"]
@@ -118,7 +118,7 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
     if (args.labels && args.labels.length > 0) taskData.labels = args.labels;
     if (args.section_id) taskData.sectionId = args.section_id;
     if (args.parent_id) taskData.parentId = args.parent_id;
-    if (args.assignee_id) taskData.assigneeId = args.assignee_id;
+    if (args.responsible_uid) taskData.responsibleUid = args.responsible_uid;
     
     // Create the task via Todoist API
     const task = await client.addTask(taskData);
@@ -132,7 +132,7 @@ export class CreateTaskTool extends BaseTool<CreateTaskArgs> {
     if (task.labels && task.labels.length > 0) responseText += `\nLabels: ${task.labels.join(', ')}`;
     if (task.sectionId) responseText += `\nSection ID: ${task.sectionId}`;
     if (task.parentId) responseText += `\nParent Task ID: ${task.parentId}`;
-    if (task.assigneeId) responseText += `\nAssigned to: ${task.assigneeId}`;
+    if (task.responsibleUid) responseText += `\nAssigned to: ${task.responsibleUid}`;
     
     return {
       content: [{ 

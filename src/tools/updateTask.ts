@@ -66,9 +66,9 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
           type: "string",
           description: "ID of the parent task to make this a subtask of (optional)"
         },
-        assignee_id: {
-          type: "number",
-          description: "ID of the user to assign this task to (optional)"
+        responsible_uid: {
+          type: "string",
+          description: "UID of the user to assign as responsible for this task (optional)"
         }
       },
       required: ["task_id"]
@@ -120,7 +120,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (args.labels) updateData.labels = args.labels;
     if (args.section_id) updateData.sectionId = args.section_id;
     if (args.parent_id) updateData.parentId = args.parent_id;
-    if (args.assignee_id) updateData.assigneeId = args.assignee_id;
+    if (args.responsible_uid) updateData.responsibleUid = args.responsible_uid;
 
     // Update the task via Todoist API
     const updatedTask = await client.updateTask(taskId, updateData);
@@ -134,7 +134,7 @@ export class UpdateTaskTool extends BaseTool<UpdateTaskArgs> {
     if (updatedTask.labels && updatedTask.labels.length > 0) responseText += `\nNew Labels: ${updatedTask.labels.join(', ')}`;
     if (updatedTask.sectionId) responseText += `\nNew Section ID: ${updatedTask.sectionId}`;
     if (updatedTask.parentId) responseText += `\nNew Parent Task ID: ${updatedTask.parentId}`;
-    if (updatedTask.assigneeId) responseText += `\nNew Assignee ID: ${updatedTask.assigneeId}`;
+    if (updatedTask.responsibleUid) responseText += `\nNew Responsible UID: ${updatedTask.responsibleUid}`;
     
     return {
       content: [{
