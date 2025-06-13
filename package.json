@@ -1,6 +1,6 @@
 {
   "name": "@keyboardcowboy/todoist-mcp-server",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "MCP server for Todoist API integration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "prepare": "npm run build",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "release": "semantic-release"
   },
   "repository": {
     "type": "git",

@@ -36,7 +36,6 @@ To use this server with Claude, Cursor, or any AI client that supports MCPs, con
 }
 ```
 
-- Replace `/path/to/repo/root` with the path to your local clone of this repository.
 - Replace `YOUR_API_TOKEN` with your Todoist API token (see below).
 
 ## How to Run Locally
