@@ -11,23 +11,16 @@ An MCP (Model Context Protocol) server implementation that integrates Claude wit
 * **Natural Language Task Management**: Create, update, complete, and delete tasks using everyday language
 * **Project Management**: Retrieve project information and assign tasks to specific projects
 * **Smart Task Search**: Find tasks using partial name matches
-* **Flexible Filtering**: Filter tasks by due date, priority, project, and other attributes
-* **Rich Task Details**: Support for descriptions, due dates, priority levels, and labels
+* **Flexible Filtering**: Filter tasks by due date, deadline, priority, project, and other attributes
+* **Rich Task Details**: Support for descriptions, due dates, deadlines, priority levels, and labels
+* **Deadline Support**: Set and update deadlines for tasks, in addition to due dates
 * **Intuitive Error Handling**: Clear feedback for better user experience
 
-> **Note:** Deadlines are not supported in the current version of the Todoist API. Only due dates are available for task scheduling and filtering.
+> **Note:** Deadlines are now supported. You can set both due dates and deadlines for tasks.
 
-## Installation
+## How to Add to Claude, Cursor, or Any AI Client Supporting MCPs
 
-Forked from https://github.com/abhiz123/todoist-mcp-server
-
-### To run locally
-*Ensure you have the latest version of `node` installed.*
-
-1. Check out the repo
-2. `cd` into the root
-3. run `npm run build`
-4. Configure your tool's MCP settings like so:
+To use this server with Claude, Cursor, or any AI client that supports MCPs, configure your tool's MCP settings as follows:
 
 ```json
 {
@@ -45,6 +38,36 @@ Forked from https://github.com/abhiz123/todoist-mcp-server
 }
 ```
 
+- Replace `/path/to/repo/root` with the path to your local clone of this repository.
+- Replace `YOUR_API_TOKEN` with your Todoist API token (see below).
+
+## How to Run Locally
+
+*Ensure you have the latest version of `node` installed.*
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/abhiz123/todoist-mcp-server.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd todoist-mcp-server
+   ```
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Build the project:
+   ```bash
+   npm run build
+   ```
+5. Set your Todoist API token as an environment variable:
+   - Get your API token by logging into Todoist, going to Settings → Integrations, and copying the token under "Developer".
+   - You can set it in your shell or in the MCP config as shown above.
+6. Start the server as described in the MCP configuration above.
+
+---
+
 ## Tools
 
 ### todoist_get_projects
@@ -57,7 +80,7 @@ Retrieve all projects with their IDs and names:
 ### todoist_create_task
 Create new tasks with various attributes:
 * Required: content (task title)
-* Optional: description, due date, priority level (1-4), project_id, labels
+* Optional: description, due date, deadline_date, priority level (1-4), project_id, labels
 * Example: "Create task 'Team Meeting' in project 'Work' with label 'urgent' due tomorrow"
 
 ### todoist_get_tasks
@@ -70,7 +93,7 @@ Retrieve and filter tasks:
 ### todoist_update_task
 Update existing tasks using natural language search:
 * Find tasks by partial name match
-* Update any task attribute (content, description, due date, priority)
+* Update any task attribute (content, description, due date, deadline_date, priority)
 * Example: "Update meeting task to be due next Monday"
 
 ### todoist_complete_task
@@ -107,6 +130,7 @@ Remove tasks using natural language search:
 "Add task 'Review PR' due tomorrow at 2pm"
 "Create high priority task 'Fix bug' with description 'Critical performance issue'"
 "Create task 'Design Review' in project 'Work' with labels 'urgent' and 'review'"
+"Create task 'Submit report' with deadline 2024-07-01"
 ```
 
 ### Getting Tasks
@@ -122,6 +146,7 @@ Remove tasks using natural language search:
 "Update documentation task to be due next week"
 "Change priority of bug fix task to urgent"
 "Add description to team meeting task"
+"Update 'Review PR' to have a deadline next Friday"
 ```
 
 ### Completing Tasks
@@ -134,23 +159,6 @@ Remove tasks using natural language search:
 ```
 "Delete the PR review task"
 "Remove meeting prep task"
-```
-
-## Development
-
-### Building from source
-```bash
-# Clone the repository
-git clone https://github.com/abhiz123/todoist-mcp-server.git
-
-# Navigate to directory
-cd todoist-mcp-server
-
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
 ```
 
 ## Contributing

@@ -39,7 +39,10 @@
     "@modelcontextprotocol/sdk": "0.5.0"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/node": "^22.10.1",
+    "semantic-release": "^24.2.5",
     "shx": "^0.3.4",
     "typescript": "^5.7.2"
   }
