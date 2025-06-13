@@ -34,13 +34,28 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
           type: "string",
           description: "Filter tasks by project ID (optional)"
         },
-        filter: {
+        section_id: {
           type: "string",
-          description: "Filter tasks using natural language (e.g. 'urgent tasks due today', 'high priority work project', 'overdue tasks') or Todoist syntax (e.g. 'p1 & today', '#Work & @urgent'). Natural language gets converted to proper Todoist filter syntax automatically."
+          description: "Filter tasks by section ID (optional)"
         },
-        priority: {
+        parent_id: {
           type: "string",
-          description: "Task priority: number ('1'-'4') or string (P1-P4) where P1=urgent, P4=normal (optional)",
+          description: "Filter tasks by parent task ID (optional)"
+        },
+        label: {
+          type: "string",
+          description: "Filter tasks by label (optional)"
+        },
+        ids: {
+          type: "array",
+          items: {
+            type: "string"
+          },
+          description: "Filter tasks by task IDs (optional)"
+        },
+        content: {
+          type: "string",
+          description: "Filter tasks using natural language by any other criteria or text strings (e.g. 'urgent tasks due today', 'high priority work project', 'overdue tasks') or Todoist syntax (e.g. 'p1 & today', '#Work & @urgent'). Natural language gets converted to proper Todoist filter syntax automatically."
         },
         limit: {
           type: "number",
@@ -73,41 +88,39 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
   protected async execute(args: GetTasksArgs, client: TodoistApi): Promise<ToolResponse> {
     // Build API parameters - only pass filter if at least one filtering parameter is provided
     const apiParams: any = {};
-    if (args.project_id) {
-      apiParams.projectId = args.project_id;
-    }
-    if (args.filter) {
-      // Convert natural language to Todoist filter syntax
-      const formattedFilter = formatFilter(args.filter);
-      apiParams.filter = formattedFilter;
-    }
-    
-    // Retrieve tasks from Todoist API
-    // If no filters provided, default to showing all tasks
-    const tasksResponse = await client.getTasks(Object.keys(apiParams).length > 0 ? apiParams : undefined);
-    const tasks = tasksResponse.results;
+    let tasks: any = [];
+    let method: string = "";
 
-    // Apply additional client-side filters
-    let filteredTasks = tasks;
-    if (args.priority) {
-      const numericPriority = mapPriority(args.priority);
-      filteredTasks = filteredTasks.filter((task: any) => task.priority === numericPriority);
+
+    if (args.content && args.content.length > 0) {
+      // Convert natural language to Todoist filter syntax
+      apiParams.query = formatFilter(args.content);
+      const tasksResponse = await client.getTasksByFilter(apiParams);
+      tasks = tasksResponse.results;
+      method = "getTasksByFilter";
     }
-    
-    // Apply limit
-    if (args.limit && args.limit > 0) {
-      filteredTasks = filteredTasks.slice(0, args.limit);
+    else {
+      apiParams.projectId = args.project_id;
+      apiParams.sectionId = args.section_id;
+      apiParams.parentId = args.parent_id;
+      apiParams.label = args.label;
+      apiParams.ids = args.ids;
+
+      // Retrieve tasks from Todoist API
+      const tasksResponse = await client.getTasks(apiParams);
+      tasks = tasksResponse.results;
+      method = "getTasks";
     }
     
     // Format response with task details including taskID for parent-child relationships
-    const taskList = filteredTasks.map((task: any) => 
+    const taskList = tasks.map((task: any) => 
       `- ${task.content} (ID: ${task.id})${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}${task.parentId ? `\n  Parent Task ID: ${task.parentId}` : ''}${task.responsibleUid ? `\n  Responsible UID: ${task.responsibleUid}` : ''}`
-    ).join('\n\n');
+    ).join('\n\n') + `\n\nMethod: ${method}`;
     
     return {
       content: [{ 
         type: "text", 
-        text: filteredTasks.length > 0 ? taskList : "No tasks found matching the criteria" 
+        text: tasks.length > 0 ? taskList : "No tasks found matching the criteria.  Method: " + method
       }],
       isError: false,
     };

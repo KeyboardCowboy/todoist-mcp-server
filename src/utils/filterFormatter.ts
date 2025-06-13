@@ -136,6 +136,10 @@ export function formatFilter(input: string): string {
   if (isAlreadyTodoistSyntax(normalized)) {
     return input.trim();
   }
+  // If input already starts with 'search:', return as-is
+  if (normalized.startsWith('search:')) {
+    return input.trim();
+  }
 
   // Track found patterns to combine with proper operators
   const foundPatterns: string[] = [];
@@ -176,9 +180,28 @@ export function formatFilter(input: string): string {
     }
   });
 
-  // If no patterns found, return original input
+  // After extracting all known patterns, any remaining words are unmatched
+  // Remove common stopwords and connector words (like 'and', 'tasks', etc.)
+  const stopwords = ['and', 'or', 'tasks', 'task', 'that', 'are', 'is', 'with', 'the', 'a', 'an', 'to', 'for', 'of', 'by', 'in', 'on', 'at', 'as', 'from', 'mention'];
+  let unmatchedWords = workingText
+    .split(/\s+/)
+    .filter(word => word && !stopwords.includes(word))
+    .filter(word => word.length > 0)
+    .join(' ')
+    .trim();
+
+  // If there are unmatched words, add them as a search: pattern (but don't double-wrap)
+  if (unmatchedWords) {
+    if (!unmatchedWords.startsWith('search:')) {
+      foundPatterns.push(`search: ${unmatchedWords}`);
+    } else {
+      foundPatterns.push(unmatchedWords);
+    }
+  }
+
+  // If no patterns found and not Todoist syntax, treat as plain text search
   if (foundPatterns.length === 0) {
-    return input;
+    return `search: ${input.trim()}`;
   }
 
   // Remove duplicates and combine with & operator
