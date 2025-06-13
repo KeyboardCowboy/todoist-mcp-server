@@ -32,6 +32,7 @@ import {
   DeleteTaskTool,
   CompleteTaskTool
 } from "./tools/index.js";
+import { CacheManager } from "./CacheManager.js";
 
 /**
  * Initialize the MCP server with basic configuration
@@ -39,7 +40,7 @@ import {
 const server = new Server(
   {
     name: "todoist-mcp-server",
-    version: "0.1.0",
+    version: "1.0.0",
   },
   {
     capabilities: {
@@ -66,12 +67,17 @@ if (!TODOIST_API_TOKEN) {
 const todoistClient = new TodoistApi(TODOIST_API_TOKEN);
 
 /**
+ * Initialize cache manager
+ */
+const cacheManager = new CacheManager();
+
+/**
  * Initialize tool manager and register all available tools
  * 
  * The ToolManager implements the Registry pattern to manage all tools
  * and route requests to the appropriate handlers.
  */
-const toolManager = new ToolManager();
+const toolManager = new ToolManager(cacheManager);
 toolManager.register(new CreateTaskTool());
 toolManager.register(new GetTasksTool());
 toolManager.register(new GetProjectsTool());

@@ -8,6 +8,9 @@
 
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { TodoistApi } from "@doist/todoist-api-typescript";
+import os from "os";
+import fs from "fs";
+import { CacheManager } from "../CacheManager";
 
 /**
  * Standard response format for all tool operations
@@ -26,11 +29,18 @@ export type ToolResponse = {
  * interface for all tools while allowing each tool to implement its specific
  * validation and execution logic.
  * 
+ * NOTE: Child classes must instantiate `this.cacheManager` in their constructor
+ * after setting `this.cacheFile`, e.g.:
+ *   this.cacheManager = new CacheManager(this.cachePath, this.cacheFile);
+ *
  * @template T The type of arguments this tool expects
  */
 export abstract class BaseTool<T = unknown> {
   /** The MCP tool definition including schema and description */
   abstract readonly definition: Tool;
+
+  /** Cache manager instance (must be set by child class) */
+  protected cacheManager!: CacheManager;
 
   /**
    * Gets the unique name identifier for this tool from the definition
@@ -70,10 +80,14 @@ export abstract class BaseTool<T = unknown> {
    * 
    * @param args Arguments provided by the user
    * @param client Todoist API client
+   * @param cacheManager Cache manager instance
    * @returns Promise resolving to a tool response
    * @throws Error if argument validation fails
    */
-  async handle(args: unknown, client: TodoistApi): Promise<ToolResponse> {
+  async handle(args: unknown, client: TodoistApi, cacheManager: CacheManager): Promise<ToolResponse> {
+    // Set the cache manager for the tool.
+    this.cacheManager = cacheManager;
+
     // Common validation: ensure args is a non-null object
     if (typeof args !== "object" || args === null) {
       throw new Error(`Invalid arguments for ${this.name}: expected object, got ${typeof args}`);
@@ -85,5 +99,24 @@ export abstract class BaseTool<T = unknown> {
     }
     
     return await this.execute(args, client);
+  }
+
+  /**
+   * Returns an array of cache objects.
+   * 
+   * @returns Array of cache objects.
+   */
+  protected getCache(name: string): Array<any> | null {
+    return this.cacheManager.getCache(name);
+  }
+
+  /**
+   * Sets an array of cache objects.
+   * 
+   * @param data Array of cache objects.
+   * @param ttl Time to live in ms (optional)
+   */
+  protected setCache(name: string, data: Array<any>, ttl: number = 300000): void {
+    this.cacheManager.setCache(name, data, ttl);
   }
 } 
