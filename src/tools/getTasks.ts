@@ -88,15 +88,20 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
   protected async execute(args: GetTasksArgs, client: TodoistApi): Promise<ToolResponse> {
     // Build API parameters - only pass filter if at least one filtering parameter is provided
     const apiParams: any = {};
-    let tasks: any = [];
+    let response: {status: boolean, tasks?: any, error?: any};
     let method: string = "";
-
 
     if (args.content && args.content.length > 0) {
       // Convert natural language to Todoist filter syntax
       apiParams.query = formatFilter(args.content);
-      const tasksResponse = await client.getTasksByFilter(apiParams);
-      tasks = tasksResponse.results;
+      response = await client.getTasksByFilter(apiParams)
+        .then(tasksResponse => {
+          return {status: true, tasks: tasksResponse.results};
+        })
+        .catch(error => {
+          console.error('Error fetching tasks by filter:', error);
+          return {status: false, error: error};
+        });
       method = "getTasksByFilter";
     }
     else {
@@ -107,20 +112,37 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
       apiParams.ids = args.ids;
 
       // Retrieve tasks from Todoist API
-      const tasksResponse = await client.getTasks(apiParams);
-      tasks = tasksResponse.results;
       method = "getTasks";
+      response = await client.getTasks(apiParams)
+        .then(tasksResponse => {
+          return {status: true, tasks: tasksResponse.results};
+        })
+        .catch(error => {
+          console.error('Error fetching tasks:', error);
+          return {status: false, error: error};
+        });
     }
-    
+
+    // If the API call failed, process the error.
+    if (!response.status) {
+      return {
+        content: [{
+          type: 'text',
+          text: 'Failed to fetch tasks by filter.  Error: ' + response.error
+        }],
+        isError: true,
+      };
+    }
+
     // Format response with task details including taskID for parent-child relationships
-    const taskList = tasks.map((task: any) => 
+    const taskList = response.tasks.map((task: any) =>
       `- ${task.content} (ID: ${task.id})${task.description ? `\n  Description: ${task.description}` : ''}${task.due ? `\n  Due: ${task.due.string}` : ''}${task.priority ? `\n  Priority: ${task.priority}` : ''}${task.parentId ? `\n  Parent Task ID: ${task.parentId}` : ''}${task.responsibleUid ? `\n  Responsible UID: ${task.responsibleUid}` : ''}`
     ).join('\n\n') + `\n\nMethod: ${method}`;
-    
+
     return {
-      content: [{ 
-        type: "text", 
-        text: tasks.length > 0 ? taskList : "No tasks found matching the criteria.  Method: " + method
+      content: [{
+        type: "text",
+        text: response.tasks.length > 0 ? taskList : "No tasks found matching the criteria.  Method: " + method
       }],
       isError: false,
     };
