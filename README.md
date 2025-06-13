@@ -2,10 +2,6 @@
 
 An MCP (Model Context Protocol) server implementation that integrates Claude with Todoist, enabling natural language task management. This server allows Claude to interact with your Todoist tasks using everyday language.
 
-<a href="https://glama.ai/mcp/servers/fhaif4fv1w">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/fhaif4fv1w/badge" alt="Todoist Server MCP server" />
-</a>
-
 ## Features
 
 * **Natural Language Task Management**: Create, update, complete, and delete tasks using everyday language
