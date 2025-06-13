@@ -9,6 +9,7 @@
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { TodoistApi } from "@doist/todoist-api-typescript";
 import { BaseTool, ToolResponse } from "./tools/BaseTool.js";
+import { CacheManager } from "./CacheManager.js";
 
 /**
  * Central registry and dispatcher for all Todoist MCP tools
@@ -22,6 +23,18 @@ import { BaseTool, ToolResponse } from "./tools/BaseTool.js";
 export class ToolManager {
   /** Internal registry mapping tool names to tool instances */
   private tools = new Map<string, BaseTool>();
+
+  /** Cache manager instance */
+  private cacheManager: CacheManager;
+
+  /**
+   * Constructor for the ToolManager.
+   * 
+   * @param cacheManager The cache manager instance.
+   */
+  constructor(cacheManager: CacheManager) {
+    this.cacheManager = cacheManager;
+  }
 
   /**
    * Registers a new tool in the registry
@@ -60,7 +73,8 @@ export class ToolManager {
         isError: true,
       };
     }
-    return await tool.handle(args, client);
+    // Initialize the cache manager for the tool.
+    return await tool.handle(args, client, this.cacheManager);
   }
 
   /**

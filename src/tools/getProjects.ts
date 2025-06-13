@@ -34,6 +34,12 @@ export class GetProjectsTool extends BaseTool<GetProjectsArgs> {
     }
   };
 
+  /**
+   * Validates the arguments for the get projects tool.
+   * 
+   * @param args The arguments to validate.
+   * @returns True if the arguments are valid, false otherwise.
+   */
   protected validateArgs(args: unknown): args is GetProjectsArgs {
     // All fields are optional, basic object validation handled by BaseTool
     return true;
@@ -49,21 +55,31 @@ export class GetProjectsTool extends BaseTool<GetProjectsArgs> {
    * 
    * @param args Validated project retrieval arguments
    * @param client Todoist API client for making requests
+   * @param cacheManager Cache manager instance
    * @returns Promise resolving to formatted project list
    */
   protected async execute(args: GetProjectsArgs, client: TodoistApi): Promise<ToolResponse> {
-    // Retrieve all projects from Todoist
-    const projects = await client.getProjects();
-    
+    let source = "cache";
+
+    // Try to pull from cache before making API call.
+    let projects: any = this.getCache("projects");
+    if (!projects) {
+      // Retrieve all projects from Todoist
+      let response = await client.getProjects();
+      projects = response.results;
+      this.setCache("projects", projects, 0);
+      source = "api";
+    }
+
     // Format response with project names and IDs
-    const projectList = projects.results.map((project: any) => 
+    const projectList = projects.map((project: any) => 
       `- ${project.name} (ID: ${project.id})`
     ).join('\n');
     
     return {
       content: [{ 
         type: "text", 
-        text: projects.results.length > 0 ? `Projects:\n${projectList}` : "No projects found" 
+        text: projects.length > 0 ? `Projects:\n${projectList}\n\nSource: ${source}` : "No projects found" 
       }],
       isError: false,
     };

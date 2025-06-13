@@ -14,6 +14,21 @@ An MCP (Model Context Protocol) server implementation that integrates Claude wit
 
 > **Note:** Deadlines are now supported. You can set both due dates and deadlines for tasks.
 
+## Feature Support
+
+This MCP provides the following support for Todoist objects.
+
+| Object | Create | Read | Update | Delete | Cache Support |
+| :--- | :---: | :---: | :---: | :---: |:---:|
+| **Projects** | ❌ | ✅ | ❌ | ❌ | ✅ |
+| **Tasks** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Sections** | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Labels** | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Users** | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Comments** | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+**Note on Labels**: Labels are created or updated automatically when you add them to a task. There is no direct tool for managing labels independently.
+
 ## How to Add to Claude, Cursor, or Any AI Client Supporting MCPs
 
 To use this server with Claude, Cursor, or any AI client that supports MCPs, configure your tool's MCP settings as follows:
@@ -25,7 +40,8 @@ To use this server with Claude, Cursor, or any AI client that supports MCPs, con
       "command": "npx",
       "args": ["-y", "@keyboardcowboy/todoist-mcp-server"],
       "env": {
-          "TODOIST_API_TOKEN": "YOUR_API_TOKEN"
+          "TODOIST_API_TOKEN": "YOUR_API_TOKEN",
+          "CACHE_PATH": "/optional/path/to/store/cache/data"
       }
     }
   }
@@ -33,6 +49,7 @@ To use this server with Claude, Cursor, or any AI client that supports MCPs, con
 ```
 
 - Replace `YOUR_API_TOKEN` with your Todoist API token (see below).
+- Cache is stored in `[HOME]/.todoist-mcp-server` unless otherwise specified.
 
 ## How to Run Locally
 
@@ -152,6 +169,11 @@ Remove tasks using natural language search:
 ```
 "Delete the PR review task"
 "Remove meeting prep task"
+```
+
+### Refreshing Cached Data
+```
+"Refresh my project data"
 ```
 
 ## Contributing
