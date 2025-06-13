@@ -19,10 +19,9 @@ export class CacheManager {
 
     /**
      * Create a new CacheManager.
-     * @param cachePath Directory where cache files are stored.
      */
     constructor() {
-        this.cachePath = os.homedir() + "/.todoist-mcp-server/";
+        this.cachePath = process.env.CACHE_DIR || os.homedir() + "/.todoist-mcp-server/";
         if (!fs.existsSync(this.cachePath)) {
             try {
                 fs.mkdirSync(this.cachePath, { recursive: true });
@@ -84,5 +83,23 @@ export class CacheManager {
             data: data,
         };
         fs.writeFileSync(fullPath, JSON.stringify(cache));
+    }
+
+    /**
+     * Delete a cache file by name.
+     *
+     * @param name The cache name (file will be `${name}.json`)
+     * @returns true if the file was deleted, false if not found.
+     */
+    deleteCache(name: string): boolean {
+        const fullPath = path.join(this.cachePath, `${name}.json`);
+        if (!fs.existsSync(fullPath)) return false;
+        try {
+            fs.unlinkSync(fullPath);
+            return true;
+        } catch (e) {
+            console.error(`Failed to delete cache file at ${fullPath}:`, e);
+            return false;
+        }
     }
 } 

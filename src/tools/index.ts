@@ -6,20 +6,23 @@
  */
 
 // Import all tool classes
-import { CreateTaskTool } from './createTask.js';
-import { GetTasksTool } from './getTasks.js';
-import { GetProjectsTool } from './getProjects.js';
-import { UpdateTaskTool } from './updateTask.js';
-import { DeleteTaskTool } from './deleteTask.js';
+import { BaseTool } from './BaseTool.js';
 import { CompleteTaskTool } from './completeTask.js';
+import { CreateTaskTool } from './createTask.js';
+import { DeleteCacheTool } from './deleteCache.js';
+import { DeleteTaskTool } from './deleteTask.js';
+import { GetProjectsTool } from './getProjects.js';
+import { GetTasksTool } from './getTasks.js';
+import { UpdateTaskTool } from './updateTask.js';
 
-// Re-export tool classes for external use
-export { CreateTaskTool };
-export { GetTasksTool };
-export { GetProjectsTool };
-export { UpdateTaskTool };
-export { DeleteTaskTool };
-export { CompleteTaskTool };
-
-// Export base class
-export { BaseTool } from './BaseTool.js'; 
+// Export all tool classes and base class in a single block
+export {
+  BaseTool,
+  CompleteTaskTool,
+  CreateTaskTool,
+  DeleteCacheTool,
+  DeleteTaskTool,
+  GetProjectsTool,
+  GetTasksTool,
+  UpdateTaskTool,
+}; 

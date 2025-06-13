@@ -21,18 +21,15 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { TodoistApi } from "@doist/todoist-api-typescript";
 import { ToolManager } from "./ToolManager.js";
-import { 
-  CreateTaskTool,
-  GetTasksTool,
-  GetProjectsTool,
-  UpdateTaskTool,
-  DeleteTaskTool,
-  CompleteTaskTool
-} from "./tools/index.js";
 import { CacheManager } from "./CacheManager.js";
+import { PromptManager } from "./PromptManager.js";
+import * as Tools from "./tools/index.js";
+import { RefreshCachePrompt } from "./prompts/RefreshCachePrompt.js";
 
 /**
  * Initialize the MCP server with basic configuration
@@ -45,6 +42,7 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      prompts: {},
     },
   },
 );
@@ -78,22 +76,19 @@ const cacheManager = new CacheManager();
  * and route requests to the appropriate handlers.
  */
 const toolManager = new ToolManager(cacheManager);
-toolManager.register(new CreateTaskTool());
-toolManager.register(new GetTasksTool());
-toolManager.register(new GetProjectsTool());
-toolManager.register(new UpdateTaskTool());
-toolManager.register(new DeleteTaskTool());
-toolManager.register(new CompleteTaskTool());
-
-/**
- * Handler for listing all available tools
- * 
- * This endpoint returns the tool definitions that MCP clients use
- * to understand what tools are available and their schemas.
- */
+toolManager.register(new Tools.CreateTaskTool());
+toolManager.register(new Tools.GetTasksTool());
+toolManager.register(new Tools.GetProjectsTool());
+toolManager.register(new Tools.UpdateTaskTool());
+toolManager.register(new Tools.DeleteTaskTool());
+toolManager.register(new Tools.CompleteTaskTool());
+toolManager.register(new Tools.DeleteCacheTool());
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: toolManager.getAllDefinitions(),
 }));
+
+// Log registered tools
+console.log("Registered tools:", toolManager.getAllDefinitions().map(tool => tool.name));
 
 /**
  * Handler for executing tool requests
@@ -122,6 +117,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       isError: true,
     };
   }
+});
+
+/**
+ * Initialize prompt manager and register all available prompts
+ */
+const promptManager = new PromptManager(cacheManager);
+promptManager.register(new RefreshCachePrompt());
+server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+  prompts: promptManager.getAllDefinitions(),
+}));
+
+/**
+ * Handler for executing prompt requests
+ * 
+ * This endpoint receives prompt execution requests and routes them
+ * through the PromptManager to the appropriate prompt handler.
+ */
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  return await promptManager.handle(request.params.name, request.params.arguments);
 });
 
 /**
