@@ -26,10 +26,8 @@ To use this server with Claude, Cursor, or any AI client that supports MCPs, con
 {
   "mcpServers": {
     "todoist": {
-      "command": "node",
-      "args": [
-          "/path/to/repo/root"
-      ],
+      "command": "npx",
+      "args": ["-y", "@keyboardcowboy/todoist-mcp-server"],
       "env": {
           "TODOIST_API_TOKEN": "YOUR_API_TOKEN"
       }
@@ -47,7 +45,7 @@ To use this server with Claude, Cursor, or any AI client that supports MCPs, con
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/abhiz123/todoist-mcp-server.git
+   git clone git@github.com:KeyboardCowboy/todoist-mcp-server.git
    ```
 2. Navigate to the project directory:
    ```bash

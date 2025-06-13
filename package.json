@@ -1,5 +1,5 @@
 {
-  "name": "@abhiz123/todoist-mcp-server",
+  "name": "@keyboardcowboy/todoist-mcp-server",
   "version": "0.1.0",
   "description": "MCP server for Todoist API integration",
   "main": "dist/index.js",
