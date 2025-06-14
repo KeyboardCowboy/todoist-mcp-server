@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/KeyboardCowboy/todoist-mcp-server/compare/v1.1.0...v1.1.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* remove debugging line that was breaking runtime. ([280df1f](https://github.com/KeyboardCowboy/todoist-mcp-server/commit/280df1fcbb73f224abc12857a2d4012fb0001430))
+
 # [1.1.0](https://github.com/KeyboardCowboy/todoist-mcp-server/compare/v1.0.0...v1.1.0) (2025-06-13)
 
 
