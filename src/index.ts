@@ -87,9 +87,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: toolManager.getAllDefinitions(),
 }));
 
-// Log registered tools
-console.log("Registered tools:", toolManager.getAllDefinitions().map(tool => tool.name));
-
 /**
  * Handler for executing tool requests
  * 
