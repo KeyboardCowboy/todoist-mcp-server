@@ -7,8 +7,12 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "declaration": true
+    "declaration": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src/index.ts"],
+  "include": [
+    "src/**/*",
+    "__tests__/**/*"
+  ],
   "exclude": ["node_modules", "dist"]
 }
