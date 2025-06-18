@@ -11,7 +11,7 @@ import { TodoistApi } from "@doist/todoist-api-typescript";
 import { BaseTool, ToolResponse } from "./BaseTool.js";
 import { GetTasksArgs } from "../types/index.js";
 import { mapPriority } from "../utils/priorityMapper.js";
-import { formatFilter, getFilterExamples, Project } from "../utils/filterFormatter.js";
+import { formatFilter, getFilterExamples } from "../utils/filterFormatter.js";
 
 /**
  * Tool for retrieving tasks from Todoist with filtering capabilities
@@ -91,13 +91,9 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
     let response: {status: boolean, tasks?: any, error?: any};
     let method: string = "";
 
-    if (args.content && args.content.length > 0) {
-      // Get cached projects data for enhanced filtering
-      const cachedProjects = this.getCache("projects");
-      const projects: Project[] | undefined = cachedProjects ? cachedProjects as Project[] : undefined;
-      
+    if (args.content && args.content.length > 0) {      
       // Convert natural language to Todoist filter syntax
-      apiParams.query = formatFilter(args.content, projects);
+      apiParams.query = formatFilter(args.content);
       response = await client.getTasksByFilter(apiParams)
         .then(tasksResponse => {
           return {status: true, tasks: tasksResponse.results};

@@ -7,12 +7,6 @@ interface FilterPatterns {
   deadline: Record<string, string>;
 }
 
-// Interface for project data structure matching cache/projects.json
-export interface Project {
-  id: string;
-  name: string;
-}
-
 const FILTER_PATTERNS: FilterPatterns = {
   priority: {
     'high priority': 'p1',
@@ -125,66 +119,13 @@ const FILTER_PATTERNS: FilterPatterns = {
 };
 
 /**
- * Matches natural language project references to actual project names
- * 
- * @param input - Natural language input that may contain project references
- * @param projects - Array of user's actual projects from cache
- * @returns Object with matched patterns and remaining text
- */
-function matchProjects(input: string, projects: Project[] = []): {matches: string[], remainingText: string} {
-  if (!projects || projects.length === 0) {
-    return {matches: [], remainingText: input};
-  }
-
-  const matches: string[] = [];
-  let workingText = input.toLowerCase();
-  
-  // Sort projects by name length (longest first) to match more specific names first
-  const sortedProjects = [...projects].sort((a, b) => b.name.length - a.name.length);
-  
-  for (const project of sortedProjects) {
-    const projectName = project.name.toLowerCase();
-    const projectNameClean = projectName.replace(/[^\w\s]/g, '').trim(); // Remove emojis/special chars for matching
-    
-    // Skip empty project names after cleaning
-    if (!projectNameClean) continue;
-    
-    // Try different matching patterns
-    const patterns = [
-      projectName,                          // Full name with emojis: "🏡 home improvement"
-      projectNameClean,                     // Clean name without emojis: "home improvement"
-      `in ${projectName}`,                  // "in ProjectName" format: "in 🏡 home improvement"
-      `in ${projectNameClean}`,            // "in CleanProjectName" format: "in home improvement"
-      `${projectNameClean} project`,       // "ProjectName project" format: "home improvement project"
-      `${projectNameClean} tasks`,         // "ProjectName tasks" format: "home improvement tasks"
-    ];
-    
-    for (const pattern of patterns) {
-      if (pattern && workingText.includes(pattern)) {
-        // Format project name for Todoist syntax - preserve original name with emojis
-        const todoistProjectName = `#${project.name}`;
-        matches.push(todoistProjectName);
-        
-        // Remove the matched pattern to avoid double-matching
-        workingText = workingText.replace(pattern, '').trim();
-        
-        // Only match once per project
-        break;
-      }
-    }
-  }
-  
-  return {matches, remainingText: workingText};
-}
-
-/**
  * Converts natural language filter descriptions into proper Todoist filter syntax
  * 
  * @param input - Natural language description (e.g., "urgent tasks due today")
  * @param projects - Optional array of user's actual projects from cache
  * @returns Formatted Todoist filter syntax (e.g., "p1 & today")
  */
-export function formatFilter(input: string, projects?: Project[]): string {
+export function formatFilter(input: string): string {
   if (!input || typeof input !== 'string') {
     return input || '';
   }
@@ -204,15 +145,6 @@ export function formatFilter(input: string, projects?: Project[]): string {
   // Track found patterns to combine with proper operators
   const foundPatterns: string[] = [];
   let workingText = normalized;
-  
-  // First, try to match actual projects if we have them
-  if (projects && projects.length > 0) {
-    const projectMatches = matchProjects(workingText, projects);
-    if (projectMatches.matches.length > 0) {
-      foundPatterns.push(...projectMatches.matches);
-      workingText = projectMatches.remainingText;
-    }
-  }
   
   // Sort patterns by length (longest first) to match more specific patterns first
   const allPatterns: Array<{phrase: string, syntax: string}> = [];
