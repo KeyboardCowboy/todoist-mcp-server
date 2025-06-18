@@ -38,18 +38,8 @@ export interface CreateTaskArgs {
  * Arguments for retrieving tasks from Todoist with various filters
  */
 export interface GetTasksArgs {
-  /** Filter tasks by specific project ID */
-  project_id?: string;
-  /** Filter tasks by section ID (optional) */
-  section_id?: string;
-  /** Filter tasks by parent task ID (optional) */
-  parent_id?: string;
-  /** Filter tasks by label (optional) */
-  label?: string;
-  /** Filter tasks by task IDs (optional) */
-  ids?: string[];
   /** Filter tasks using natural language (e.g. 'urgent tasks due today', 'high priority work project', 'overdue tasks') or Todoist syntax (e.g. 'p1 & today', '#Work & @urgent'). Natural language gets converted to proper Todoist filter syntax automatically. */
-  content?: string;
+  query: string;
   /** Maximum number of tasks to return (default: 10) */
   limit?: number;
 }

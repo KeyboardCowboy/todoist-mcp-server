@@ -130,4 +130,5 @@ describe('FilterFormatter', () => {
       expect(formatFilter('urgent work project due tomorrow with important label')).toBe('@important & tomorrow & #Work & p1'); // Actual order and behavior
     });
   });
+
 }); 
