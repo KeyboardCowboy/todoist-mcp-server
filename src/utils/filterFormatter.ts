@@ -1,3 +1,5 @@
+import { GetTasksArgs } from "../types/index.js";
+
 interface FilterPatterns {
   priority: Record<string, string>;
   date: Record<string, string>;
@@ -15,6 +17,8 @@ const FILTER_PATTERNS: FilterPatterns = {
     'important': 'p1',
     'priority 1': 'p1',
     'p1': 'p1',
+    'top priority': 'p1',
+    'highest priority': 'p1',
     
     'medium priority': 'p2',
     'normal priority': 'p2',

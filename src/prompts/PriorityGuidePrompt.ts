@@ -5,7 +5,7 @@ import { BasePrompt } from "./BasePrompt.js";
  */
 export class PriorityGuidePrompt extends BasePrompt {
   public name = "todoist_priority_guide";
-  public description = "Comprehensive guide explaining Todoist's dual priority systems: API priority values (1-4) vs filter priority syntax (P1-P4), including when to use each format to properly communicate the user's desired priority with Todoist.";
+  public description = "How to determine the priority of a task using Todoist's priority systems.";
   public arguments = [{
       name: "query",
       description: "The natural language query to determine the task priority.",
@@ -34,6 +34,7 @@ Todoist has **two different priority systems** that can be confusing. Here's the
 ## 🔄 The Key Difference
 
 **API Priority Values** (for creating/updating tasks):
+Numerical values for priorities from Todoist always run in this order
 - 1 = Normal (lowest priority)
 - 2 = Medium  
 - 3 = High
@@ -45,14 +46,13 @@ Todoist has **two different priority systems** that can be confusing. Here's the
 - P2 = High  
 - P1 = Urgent (highest priority)
 
-**Notice**: The numbers are **INVERTED** between these two systems!
-
 ## 🛠️ When to Use Each Format
 
 ### Use API Priority Values (1-4) when:
 - Creating tasks with \`todoist_create_task\`
 - Updating tasks with \`todoist_update_task\`
 - Setting the \`priority\` parameter in any tool
+- Interpretting responses from Todoist API calls
 
 ### Use Filter Priority Syntax (P1-P4) when:
 - Filtering tasks with \`todoist_get_tasks\`
@@ -74,28 +74,27 @@ It accepts multiple formats:
 \`\`\`
 todoist_create_task({
   content: "Important meeting prep",
-  priority: "P2"  // Gets converted to API value 3
+  priority: 3  // Use the API value 3 for the priority parameter
 })
 \`\`\`
 
 ### Filtering for Urgent Tasks:
 \`\`\`
 todoist_get_tasks({
-  content: "P1 tasks"  // Filter syntax: P1 = urgent
+  query: "P1"  // Filter syntax: P1 = API value 4 = urgent
 })
 \`\`\`
 
 ### Natural Language Examples:
 - "Create urgent task" → priority gets converted to 4
 - "Show me high priority tasks" → filter uses P2 syntax
-- "Set priority to P1" → system converts P1→4 for API calls
+- "Set priority to P1" → system converts P1 to4 for API calls
 
 ## 🚀 Best Practices
 
 1. **Use P-notation** (P1-P4) when talking to users - it's more intuitive
 2. **Let the mapper handle conversions** - don't manually convert
 3. **Remember**: P1 = most urgent, P4 = least urgent (user perspective)
-4. **The system handles the API inversion automatically**
 
 ## 🔍 Quick Reference
 
@@ -104,9 +103,7 @@ todoist_get_tasks({
 | "Urgent" | P1 | 4 | Highest Priority |
 | "High" | P2 | 3 | High Priority |  
 | "Medium" | P3 | 2 | Medium Priority |
-| "Normal" | P4 | 1 | Lowest Priority |
-
-**Remember**: You don't need to worry about the inversion - the MCP handles it automatically!`,
+| "Normal" | P4 | 1 | Lowest Priority |`
           },
         }
       ],
