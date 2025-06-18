@@ -31,6 +31,7 @@ import { PromptManager } from "./PromptManager.js";
 import * as Tools from "./tools/index.js";
 import { RefreshCachePrompt } from "./prompts/RefreshCachePrompt.js";
 import { ProjectLookupPrompt } from "./prompts/ProjectLookupPrompt.js";
+import { PriorityGuidePrompt } from "./prompts/PriorityGuidePrompt.js";
 
 /**
  * Initialize the MCP server with basic configuration
@@ -123,6 +124,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 const promptManager = new PromptManager(cacheManager);
 promptManager.register(new RefreshCachePrompt());
 promptManager.register(new ProjectLookupPrompt());
+promptManager.register(new PriorityGuidePrompt());
 server.setRequestHandler(ListPromptsRequestSchema, async () => ({
   prompts: promptManager.getAllDefinitions(),
 }));
