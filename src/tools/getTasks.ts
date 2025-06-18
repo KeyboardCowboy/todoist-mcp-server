@@ -91,7 +91,7 @@ export class GetTasksTool extends BaseTool<GetTasksArgs> {
     let response: {status: boolean, tasks?: any, error?: any};
     let method: string = "";
 
-    if (args.content && args.content.length > 0) {
+    if (args.content && args.content.length > 0) {      
       // Convert natural language to Todoist filter syntax
       apiParams.query = formatFilter(args.content);
       response = await client.getTasksByFilter(apiParams)

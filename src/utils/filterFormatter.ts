@@ -122,6 +122,7 @@ const FILTER_PATTERNS: FilterPatterns = {
  * Converts natural language filter descriptions into proper Todoist filter syntax
  * 
  * @param input - Natural language description (e.g., "urgent tasks due today")
+ * @param projects - Optional array of user's actual projects from cache
  * @returns Formatted Todoist filter syntax (e.g., "p1 & today")
  */
 export function formatFilter(input: string): string {
